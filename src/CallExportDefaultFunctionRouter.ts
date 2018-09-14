@@ -15,7 +15,7 @@ export function callExportDefaultFunctionRouter(app:Express, apiRoot:string) {
         catch(e) {
             res.send(JSON.stringify({
                 success: false,
-                error: e.message
+                message: e.message
             }));
         }
     })
