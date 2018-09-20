@@ -5,8 +5,8 @@ import {callExportDefaultFunctionRouter} from "./CallExportDefaultFunctionRouter
 export function startAppWithExportDefaultRouter(apiRoot: string) {
     const app = express();
 
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app.use(express.json({limit: '100mb'}));
+    app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
     callExportDefaultFunctionRouter(app, apiRoot);
 
