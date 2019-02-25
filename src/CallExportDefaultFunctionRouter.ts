@@ -2,11 +2,12 @@ import {Express} from "express";
 import {join} from "path";
 
 export function callExportDefaultFunctionRouter(app:Express, apiRoot:string) {
-    app.post(/^.*$/,async (req,res)=>{
+    const handler = async (req,res)=>{
         res.contentType("application/json");
         try {
             const api = require(join(apiRoot, req.path)).default;
-            const value = await api(req.body);
+
+            const value = await api({...req.query, ...req.body}, req.headers);
             res.send(JSON.stringify({
                 success: true,
                 value
@@ -18,5 +19,7 @@ export function callExportDefaultFunctionRouter(app:Express, apiRoot:string) {
                 message: e.message
             }));
         }
-    })
+    };
+    app.get(/^.*$/,handler);
+    app.post(/^.*$/,handler);
 }
