@@ -32,16 +32,14 @@ export function callExportDefaultFunctionRouter(app:Express, apiRoot:string) {
 
             let paramsFromFileUpload:any = {};
             if(req.files) {
-                for(const name of req.files) {
-                    if(!req.files.hasOwnProperty(name)) continue;
-                    const file:MulterFile = req.files[name][0];
+                for(const file of req.files as MulterFile[]) {
                     const root = new JSDOM(file.buffer, {contentType: file.mimetype}).window.document.firstElementChild;
                     if(!root) throw new Error("fail to parse XML parameter");
                     if(root.tagName === 'value' && root.children.length <= 0 && root.textContent) {
-                        paramsFromFileUpload[name] = root.textContent;
+                        paramsFromFileUpload[file.fieldname] = root.textContent;
                     }
                     else {
-                        paramsFromFileUpload[name] = root;
+                        paramsFromFileUpload[file.fieldname] = root;
                     }
                 }
             }
