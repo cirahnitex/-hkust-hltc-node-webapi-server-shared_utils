@@ -45,19 +45,31 @@ export function callExportDefaultFunctionRouter(app:Express, apiRoot:string) {
             }
 
             const value = await api({...paramsFromFileUpload, ...req.query, ...req.body}, req.headers);
+            res.contentType("text/xml");
             if(value == null) {
                 res.contentType("text/plain");
                 res.send("");
                 return;
             }
-            res.contentType("text/xml");
-            try {
-                res.send(render(value, {endOptions: {pretty: true}}));
+            else if(typeof(value) === 'string') {
+                if(value.startsWith("<?xml")) {
+                    res.send(value);
+                }
+                else {
+                    res.status(500);
+                    res.contentType("text/plain");
+                    res.send("WebAPI handler does not return XML");
+                }
             }
-            catch(e) {
-                res.status(500);
-                res.contentType("text/plain");
-                res.send("WebAPI handler does not return XML object");
+            else {
+                try {
+                    res.send(render(value, {endOptions: {pretty: true}}));
+                }
+                catch(e) {
+                    res.status(500);
+                    res.contentType("text/plain");
+                    res.send("WebAPI handler does not return XML");
+                }
             }
         }
         catch(e) {
