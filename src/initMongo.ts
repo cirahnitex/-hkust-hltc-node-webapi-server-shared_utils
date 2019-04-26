@@ -1,4 +1,4 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 
 // don't know what the f**k is going wrong, I have to hardcode IP address here. When I try to use the string "hltc31" it gives segfault
 const hltc31 = "192.168.152.31";
