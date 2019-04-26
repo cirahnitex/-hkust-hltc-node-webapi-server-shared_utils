@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-
+import {JSDOM} from "jsdom";
 export type RemoteUser = {
     ID:string, email:string
 }
@@ -13,16 +13,28 @@ const HLTC00_DISPATCHER_PORT = 8792;
 
 export function requireRemoteUser(api:(params:any, remoteUser:RemoteUser)=>Promise<any>|any) {
     return async (params:any, headers:any) => {
-        const fetchResult = await fetch(`http://hltc00:${HLTC00_DISPATCHER_PORT}/account/get_active_user?format=json`, {
+        const fetchResult = await fetch(`http://hltc00:${HLTC00_DISPATCHER_PORT}/account/get_active_user`, {
             method: "get",
             headers: {
                 cookie: headers.cookie
             }
         });
-        const json:ServerResponse = await fetchResult.json();
-        if(json.success && json.user != null) {
-            return api(params, json.user);
+
+        if(!fetchResult.ok) throw new Error("fail to communicate with account server");
+
+        const text = await fetchResult.text();
+        const document = new JSDOM(text, {
+            contentType: "text/xml"
+        }).window.document;
+
+        const idNode = document.querySelector("id");
+        const emailNode = document.querySelector("email");
+        if(idNode && idNode.textContent && idNode.textContent.length>0) {
+            if(emailNode && emailNode.textContent && emailNode.textContent.length>0) {
+                return api(params,{ID:idNode.textContent, email:emailNode.textContent})
+            }
         }
+
         throw new Error("UNAUTHORIZED");
     }
 }

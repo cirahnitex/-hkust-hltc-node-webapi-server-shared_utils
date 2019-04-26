@@ -1,12 +1,14 @@
-import * as http from "http";
-import * as express from "express";
+import http from "http";
+import express from "express";
 import {callExportDefaultFunctionRouter} from "./CallExportDefaultFunctionRouter";
+import multer from "multer";
 
 export function startAppWithExportDefaultRouter(apiRoot: string) {
     const app = express();
 
     app.use(express.json({limit: '100mb'}));
     app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+    app.use(multer({storage:multer.memoryStorage()}).any());
 
     callExportDefaultFunctionRouter(app, apiRoot);
 

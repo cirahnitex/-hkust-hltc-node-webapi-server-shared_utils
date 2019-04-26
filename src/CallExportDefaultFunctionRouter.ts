@@ -1,23 +1,66 @@
 import {Express} from "express";
 import {join} from "path";
+import {JSXXML, render} from "jsx-xml";
+import {JSDOM} from "jsdom";
+import {inspect} from "util";
+interface MulterFile {
+    /** Field name specified in the form */
+    fieldname: string;
+    /** Name of the file on the user's computer */
+    originalname: string;
+    /** Encoding type of the file */
+    encoding: string;
+    /** Mime type of the file */
+    mimetype: string;
+    /** Size of the file in bytes */
+    size: number;
+    /** The folder to which the file has been saved (DiskStorage) */
+    destination: string;
+    /** The name of the file within the destination (DiskStorage) */
+    filename: string;
+    /** Location of the uploaded file (DiskStorage) */
+    path: string;
+    /** A Buffer of the entire file (MemoryStorage) */
+    buffer: Buffer;
+}
 
 export function callExportDefaultFunctionRouter(app:Express, apiRoot:string) {
     const handler = async (req,res)=>{
-        res.contentType("application/json");
         try {
+
             const api = require(join(apiRoot, req.path)).default;
 
-            const value = await api({...req.query, ...req.body}, req.headers);
-            res.send(JSON.stringify({
-                success: true,
-                value
-            }))
+            let paramsFromFileUpload:any = {};
+            if(req.files) {
+                for(const name of req.files) {
+                    if(!req.files.hasOwnProperty(name)) continue;
+                    const file:MulterFile = req.files[name][0];
+                    const root = new JSDOM(file.buffer, {contentType: file.mimetype}).window.document.firstElementChild;
+                    if(!root) throw new Error("fail to parse XML parameter");
+                    if(root.tagName === 'value' && root.children.length <= 0 && root.textContent) {
+                        paramsFromFileUpload[name] = root.textContent;
+                    }
+                    else {
+                        paramsFromFileUpload[name] = root;
+                    }
+                }
+            }
+
+            const value = await api({...paramsFromFileUpload, ...req.query, ...req.body}, req.headers);
+            res.contentType("text/xml");
+            try {
+                res.send(render(value, {endOptions: {pretty: true}}));
+            }
+            catch(e) {
+                res.status(500);
+                res.contentType("text/plain");
+                res.send("WebAPI handler does not return XML object");
+            }
         }
         catch(e) {
-            res.send(JSON.stringify({
-                success: false,
-                message: e.message
-            }));
+            res.status(500);
+            res.contentType("text/plain");
+            res.send(e.message);
         }
     };
     app.get(/^.*$/,handler);

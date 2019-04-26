@@ -8,9 +8,12 @@
     "strictNullChecks": true,
     "emitDecoratorMetadata":true,
     "experimentalDecorators": true,
-    "typeRoots": ["@types","node_modules/@types"]
+    "typeRoots": ["@types","node_modules/@types"],
+    "esModuleInterop": true,
+    "jsx": "react",
+    "jsxFactory": "JSXXML"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts","src/**/*.tsx"],
   "exclude": [
     "node_modules"
   ]
