@@ -45,6 +45,11 @@ export function callExportDefaultFunctionRouter(app:Express, apiRoot:string) {
             }
 
             const value = await api({...paramsFromFileUpload, ...req.query, ...req.body}, req.headers);
+            if(value == null) {
+                res.contentType("text/plain");
+                res.send("");
+                return;
+            }
             res.contentType("text/xml");
             try {
                 res.send(render(value, {endOptions: {pretty: true}}));
