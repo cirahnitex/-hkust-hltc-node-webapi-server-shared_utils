@@ -1,5 +1,13 @@
-import initMongo from "./initMongo";
+import {render} from "jsx-xml";
 
-(async ()=>{
-    await initMongo("shared_utils");
-})();
+const value = "agagf";
+
+if(value == null) {
+    console.log('null')
+}
+else if(typeof(value) === 'string') {
+    console.log('str')
+}
+else {
+    console.log('oth')
+}
