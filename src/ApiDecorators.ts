@@ -1,12 +1,18 @@
 import fetch from "node-fetch";
 import {JSDOM} from "jsdom";
-export type RemoteUser = {
-    ID:string, email:string
-}
 
-type ServerResponse = {
-    user: RemoteUser | null,
-    success: boolean
+export class RemoteUser {
+    ID:string;
+    email: string;
+
+    constructor(ID: string, email: string) {
+        this.ID = ID;
+        this.email = email;
+    }
+
+    isAdmin() {
+        return this.ID === '1';
+    }
 }
 
 const HLTC00_DISPATCHER_PORT = 8792;
@@ -31,7 +37,7 @@ export function requireRemoteUser(api:(params:any, remoteUser:RemoteUser)=>Promi
         const emailNode = document.querySelector("email");
         if(idNode && idNode.textContent && idNode.textContent.length>0) {
             if(emailNode && emailNode.textContent && emailNode.textContent.length>0) {
-                return api(params,{ID:idNode.textContent, email:emailNode.textContent})
+                return api(params, new RemoteUser(idNode.textContent, emailNode.textContent));
             }
         }
 
@@ -41,7 +47,7 @@ export function requireRemoteUser(api:(params:any, remoteUser:RemoteUser)=>Promi
 
 export function requireAdmin(api:(params:any)=>Promise<any>|any) {
     return requireRemoteUser((params:any, remoteUser:RemoteUser)=>{
-        if(remoteUser.ID !== '1') throw new Error("PERMISSION_DENIED");
+        if(!remoteUser.isAdmin()) throw new Error("PERMISSION_DENIED");
         return api(params);
     });
 }
